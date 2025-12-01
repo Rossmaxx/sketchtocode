@@ -1,22 +1,39 @@
+import os
+import warnings
+# Silence TensorFlow & transformers noise
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+
+warnings.filterwarnings(
+    "ignore",
+    category=FutureWarning,
+    module="transformers.tokenization_utils_base"
+)
+
+from transformers.utils import logging as hf_logging
+hf_logging.set_verbosity_error()
+
 import cv2
 import numpy as np
 import easyocr
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 import json
-import os
+
 
 # Global variables for the TrOCR model to avoid reloading for every call
 trocr_processor = None
 trocr_model = None
 
 def get_trocr_model():
-    """Loads and caches the TrOCR model and processor."""
     global trocr_processor, trocr_model
     if trocr_processor is None or trocr_model is None:
         try:
             trocr_processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
-            trocr_model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-base-handwritten")
+            trocr_model = VisionEncoderDecoderModel.from_pretrained(
+                "microsoft/trocr-base-handwritten",
+                ignore_mismatched_sizes=True
+            )
         except Exception as e:
             print(f"Error loading TrOCR model: {e}")
             return None, None
@@ -65,8 +82,19 @@ def recognize_text_with_trocr(image_path, text_box_list):
             
         cropped_img = img.crop((x, y, x + w, y + h))
         pixel_values = processor(images=cropped_img, return_tensors="pt").pixel_values
-        generated_ids = model.generate(pixel_values)
-        generated_text = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+
+        generated_ids = model.generate(
+            pixel_values,
+            max_new_tokens=64,
+            num_beams=2
+        )
+
+        generated_text = processor.batch_decode(
+            generated_ids,
+            skip_special_tokens=True,
+            clean_up_tokenization_spaces=True
+        )[0]
+
 
         recognized_text.append({
             'text': generated_text,
