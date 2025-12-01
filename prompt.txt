@@ -43,5 +43,6 @@ IMPORTANT PRINCIPLES:
 
 6. Output:
    - Produce a SINGLE, valid HTML document with inline <style>.
+   - The final answer MUST start with "<!DOCTYPE html>" and contain NO backticks.
    - Keep the CSS tidy and semantic.
    - Avoid absolute positioning except when absolutely necessary (for example, maybe the top-right small icon box).
