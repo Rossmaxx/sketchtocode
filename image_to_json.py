@@ -1,6 +1,7 @@
 import os
 import warnings
-# Silence TensorFlow & transformers noise
+
+# Silence TensorFlow & transformers warning messages
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
 
@@ -12,6 +13,7 @@ warnings.filterwarnings(
 
 from transformers.utils import logging as hf_logging
 hf_logging.set_verbosity_error()
+
 
 import cv2
 import numpy as np
@@ -40,7 +42,6 @@ def get_trocr_model():
     return trocr_processor, trocr_model
 
 def detect_text_boxes_easyocr(image_path):
-    """Detects text bounding boxes using EasyOCR."""
     try:
         reader = easyocr.Reader(['en'])
         results = reader.readtext(image_path, detail=1)
@@ -62,7 +63,6 @@ def detect_text_boxes_easyocr(image_path):
     return text_boxes
 
 def recognize_text_with_trocr(image_path, text_box_list):
-    """Recognizes text within text boxes using TrOCR."""
     processor, model = get_trocr_model()
     if processor is None or model is None:
         return []
@@ -102,8 +102,8 @@ def recognize_text_with_trocr(image_path, text_box_list):
         })
     return recognized_text
 
-def detect_boxes_and_text(image_path, output_json="output.json"):
-    """Main function to detect both boxes and text and save as JSON."""
+def detect_boxes_and_text(image_path, output_json):
+    # Main function to detect both boxes and text and save the information as JSON.
     image = cv2.imread(image_path)
     if image is None:
         print("Error: Could not read image.")
@@ -111,7 +111,7 @@ def detect_boxes_and_text(image_path, output_json="output.json"):
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # --- Step 1: Detect large UI boxes using OpenCV ---
+    # Step 1: Detect large UI boxes using OpenCV 
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                    cv2.THRESH_BINARY_INV, 11, 2)
@@ -168,11 +168,11 @@ def detect_boxes_and_text(image_path, output_json="output.json"):
         if 'area' in box:
             del box['area']
 
-    # --- Step 2: Detect text boxes and recognize text ---
+    # Step 2: Detect text boxes and recognize text
     detected_text_boxes = detect_text_boxes_easyocr(image_path)
     detected_text_labels = recognize_text_with_trocr(image_path, detected_text_boxes)
 
-    # --- Step 3: Save to JSON file ---
+    # Step 3: Save to JSON file
     data = {
         "image_path": image_path,
         "ui_boxes": final_boxes,
@@ -188,5 +188,6 @@ def detect_boxes_and_text(image_path, output_json="output.json"):
 
     print("\n--- Detection Completed ---")
 
+# Script entry point
 if __name__ == "__main__":
     detect_boxes_and_text("files/sample.jpg", "files/raw_wireframe.json")

@@ -3,20 +3,16 @@ import os
 import json
 from google import genai
 
-# --------------------------------------------------------------------
-# Configuration
-# --------------------------------------------------------------------
 
+# Configuration
 API_KEY_FILE = "gemini_key.txt"
 PROMPT_FILE = "prompt.txt"
 
 INPUT_JSON = "files/processed_wireframe_llm.json"
 OUTPUT_HTML = "files/index.html"
 
-# --------------------------------------------------------------------
-# Helper: read API key
-# --------------------------------------------------------------------
 
+# Helper: read API key
 def get_api_key_from_file(filepath):
     try:
         with open(filepath, 'r') as f:
@@ -25,10 +21,8 @@ def get_api_key_from_file(filepath):
         print(f"API key file not found at: {filepath}")
         return None
 
-# --------------------------------------------------------------------
-# Helper: read external prompt
-# --------------------------------------------------------------------
 
+# Helper: read external prompt
 def load_prompt(filepath):
     try:
         with open(filepath, "r", encoding="utf-8") as f:
@@ -37,10 +31,8 @@ def load_prompt(filepath):
         print(f"Failed to read prompt file: {e}")
         return ""
 
-# --------------------------------------------------------------------
-# Main generation logic (cleanly encapsulated)
-# --------------------------------------------------------------------
 
+# Main generation logic (cleanly encapsulated)
 def generate_html():
 
     # Load API key
@@ -96,9 +88,6 @@ def generate_html():
         print("Failed to write HTML:", e)
 
 
-# --------------------------------------------------------------------
 # Script entry point
-# --------------------------------------------------------------------
-
 if __name__ == "__main__":
     generate_html()

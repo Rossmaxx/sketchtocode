@@ -306,6 +306,6 @@ def process_wireframe_json(path: str | Path, save_to: str | Path = None):
     print("Hierarchy generated successfully!")
 
 
+# Script entry point
 if __name__ == "__main__":
-    # Example usage:
     process_wireframe_json("files/raw_wireframe.json", save_to="files/processed_wireframe_llm.json")
