@@ -267,7 +267,7 @@ def simplify_node_for_llm(node: Dict[str, Any]) -> Dict[str, Any]:
     return simple
 
 
-def process_wireframe_json(path: str | Path, save_to: str | Path = None):
+def process_wireframe_json():
     """
     Full pipeline:
       - read JSON
@@ -277,8 +277,8 @@ def process_wireframe_json(path: str | Path, save_to: str | Path = None):
       - simplify to an LLM-facing layout tree
       - (optional) write result to another json file
     """
-    path = Path(path)
-    with path.open("r", encoding="utf-8") as f:
+    input_filepath = Path("files/raw_wireframe.json")
+    with input_filepath.open("r", encoding="utf-8") as f:
         data = json.load(f)
 
     nodes_info = build_nodes(data)
@@ -297,15 +297,14 @@ def process_wireframe_json(path: str | Path, save_to: str | Path = None):
         "layout": layout_root,
     }
 
-    # If user wants output written to disk
-    if save_to is not None:
-        save_to = Path(save_to)
-        with save_to.open("w", encoding="utf-8") as f:
-            json.dump(result, f, indent=2)
+    # Write the json file to disk for generating the code
+    save_to = Path("files/hierarchy_wireframe.json")
+    with save_to.open("w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2)
 
     print("Hierarchy generated successfully!")
 
 
 # Script entry point
 if __name__ == "__main__":
-    process_wireframe_json("files/raw_wireframe.json", save_to="files/processed_wireframe_llm.json")
+    process_wireframe_json()

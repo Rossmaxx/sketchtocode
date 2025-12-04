@@ -8,7 +8,7 @@ from google import genai
 API_KEY_FILE = "gemini_key.txt"
 PROMPT_FILE = "prompt.txt"
 
-INPUT_JSON = "files/processed_wireframe_llm.json"
+INPUT_JSON = "files/hierarchy_wireframe.json"
 OUTPUT_HTML = "files/index.html"
 
 
