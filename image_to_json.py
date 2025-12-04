@@ -102,7 +102,7 @@ def recognize_text_with_trocr(image_path, text_box_list):
         })
     return recognized_text
 
-def detect_boxes_and_text(image_path, output_json):
+def detect_boxes_and_text(image_path):
     # Main function to detect both boxes and text and save the information as JSON.
     image = cv2.imread(image_path)
     if image is None:
@@ -180,9 +180,10 @@ def detect_boxes_and_text(image_path, output_json):
     }
 
     try:
-        with open(output_json, "w", encoding="utf-8") as f:
+        output_path = "files/raw_wireframe.json"
+        with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-        print(f"\nDetection results saved to {os.path.abspath(output_json)}")
+        print(f"\nDetection results saved to {os.path.abspath(output_path)}")
     except Exception as e:
         print(f"Error writing JSON: {e}")
 
@@ -190,4 +191,4 @@ def detect_boxes_and_text(image_path, output_json):
 
 # Script entry point
 if __name__ == "__main__":
-    detect_boxes_and_text("files/sample.jpg", "files/raw_wireframe.json")
+    detect_boxes_and_text("files/sample.jpg")
