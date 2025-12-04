@@ -1,3 +1,2 @@
-Add prompt feedback loop
 Flask web server
 Draw the UI and use it for frontend (an eg for bootstrapping)
