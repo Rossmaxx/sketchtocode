@@ -1,5 +1,15 @@
 # SketchToCode - An image to HTML generator
-NOTE: This is a work in progress module, so I've hardcoded many paths and functionality.
+
+**SketchToCode** is a python based tool that takes a rough, hand-drawn wireframe image 
+and generates a semantic HTML prototype using Gemini + a custom layout engine.
+
+How it works:
+image → image_to_json.py → raw_wireframe.json
+      → json_hierarchy.py → hierarchy_wireframe.json
+      → code_generation_gemini.py → index.html
+
+
+NOTE: This is work in progress, so I've hardcoded many paths and functionality.
 
 ## Quick start
 To run SketchToCode, you need to have python 3.8+ installed, and ensure you have added python to PATH 
