@@ -1,0 +1,6 @@
+opencv-python
+numpy
+easyocr
+Pillow
+transformers
+google-genai
