@@ -27,23 +27,94 @@ import json
 trocr_processor = None
 trocr_model = None
 
+# Global EasyOCR reader so we don't reload the model every time
+_easyocr_reader = None
+
+
 def get_trocr_model():
+    """
+    Returns cached TrOCR processor + model.
+    Loads only once.
+    """
     global trocr_processor, trocr_model
-    if trocr_processor is None or trocr_model is None:
-        try:
-            trocr_processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
-            trocr_model = VisionEncoderDecoderModel.from_pretrained(
-                "microsoft/trocr-base-handwritten",
-                ignore_mismatched_sizes=True
-            )
-        except Exception as e:
-            print(f"Error loading TrOCR model: {e}")
-            return None, None
+
+    # EARLY RETURN if already loaded
+    if trocr_processor is not None and trocr_model is not None:
+        return trocr_processor, trocr_model
+
+    # Otherwise load
+    try:
+        print("Loading TrOCR model...")
+        trocr_processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
+        trocr_model = VisionEncoderDecoderModel.from_pretrained(
+            "microsoft/trocr-base-handwritten",
+            ignore_mismatched_sizes=True
+        )
+        print("TrOCR model loaded.")
+    except Exception as e:
+        print(f"Error loading TrOCR model: {e}")
+        trocr_processor = None
+        trocr_model = None
+
     return trocr_processor, trocr_model
 
-def detect_text_boxes_easyocr(image_path):
+
+def get_easyocr_reader(langs=None):
+    """
+    Returns cached EasyOCR reader.
+    Loads only once.
+    """
+    global _easyocr_reader
+
+    # EARLY RETURN if loaded
+    if _easyocr_reader is not None:
+        return _easyocr_reader
+
+    if langs is None:
+        langs = ["en"]
+
     try:
-        reader = easyocr.Reader(['en'])
+        print("Loading EasyOCR model...")
+        _easyocr_reader = easyocr.Reader(langs)
+        print("EasyOCR reader loaded.")
+    except Exception as e:
+        print(f"Error loading EasyOCR model: {e}")
+        _easyocr_reader = None
+
+    return _easyocr_reader
+
+
+def initialize_models():
+    """
+    Preload both EasyOCR and TrOCR models before pipeline runs.
+    This avoids lazy-loading delays when detect_boxes_and_text() is called.
+    """
+
+    print("\n--- Initializing OCR Models ---")
+
+    # Load EasyOCR
+    reader = get_easyocr_reader()
+    if reader is None:
+        print("Failed to load EasyOCR!")
+
+    # Load TrOCR
+    processor, model = get_trocr_model()
+    if processor is None or model is None:
+        print("Failed to load TrOCR!")
+
+    print("--- Model Initialization Complete ---\n")
+
+
+def detect_text_boxes_easyocr(image_path):
+    """
+    Detect text boxes in a single image using a shared EasyOCR reader.
+    Returns a list of dicts: {'x', 'y', 'w', 'h'}.
+    """
+    reader = get_easyocr_reader()
+    if reader is None:
+        return []
+
+    try:
         results = reader.readtext(image_path, detail=1)
     except Exception as e:
         print(f"Error during EasyOCR detection: {e}")
@@ -62,6 +133,7 @@ def detect_text_boxes_easyocr(image_path):
         text_boxes.append({'x': x, 'y': y, 'w': w, 'h': h})
     return text_boxes
 
+
 def recognize_text_with_trocr(image_path, text_box_list):
     processor, model = get_trocr_model()
     if processor is None or model is None:
@@ -72,35 +144,56 @@ def recognize_text_with_trocr(image_path, text_box_list):
     except Exception as e:
         print(f"Error opening image: {e}")
         return []
-    
-    recognized_text = []
+
+    # Collect all valid crops
+    crops = []
+    valid_boxes = []
 
     for box in text_box_list:
         x, y, w, h = box['x'], box['y'], box['w'], box['h']
         if w <= 0 or h <= 0:
             continue
-            
+
         cropped_img = img.crop((x, y, x + w, y + h))
-        pixel_values = processor(images=cropped_img, return_tensors="pt").pixel_values
+        crops.append(cropped_img)
+        valid_boxes.append(box)
 
-        generated_ids = model.generate(
-            pixel_values,
-            max_new_tokens=64,
-            num_beams=2
-        )
+    if not crops:
+        return []
 
-        generated_text = processor.batch_decode(
-            generated_ids,
-            skip_special_tokens=True,
-            clean_up_tokenization_spaces=True
-        )[0]
+    # Batch encode all crops at once
+    pixel_values = processor(
+        images=crops,
+        return_tensors="pt"
+    ).pixel_values
 
+    # Faster generation settings (tweakable)
+    generated_ids = model.generate(
+        pixel_values,
+        max_new_tokens=64,     # you can drop to 32 for more speed
+        num_beams=2            # you can drop to 1 for more speed
+    )
 
+    # Batch decode
+    texts = processor.batch_decode(
+        generated_ids,
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=True
+    )
+
+    # Return in original format
+    recognized_text = []
+    for box, txt in zip(valid_boxes, texts):
         recognized_text.append({
-            'text': generated_text,
-            'bbox': {'x': x, 'y': y, 'w': w, 'h': h}
+            'text': txt,
+            'bbox': {
+                'x': box['x'], 'y': box['y'],
+                'w': box['w'], 'h': box['h']
+            }
         })
+
     return recognized_text
+
 
 def detect_boxes_and_text(image_path):
     # Main function to detect both boxes and text and save the information as JSON.
@@ -191,4 +284,5 @@ def detect_boxes_and_text(image_path):
 
 # Script entry point
 if __name__ == "__main__":
+    initialize_models()
     detect_boxes_and_text("files/sample.jpg")
