@@ -2,6 +2,7 @@
 import os
 import json
 from google import genai
+import socket
 
 
 # Configuration
@@ -10,6 +11,16 @@ PROMPT_FILE = "prompt.txt"
 
 INPUT_JSON = "files/hierarchy_wireframe.json"
 OUTPUT_HTML = "files/index.html"
+
+
+# Helper: check internet access
+def has_internet(timeout=3):
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
+        return True
+    except Exception:
+        return False
 
 
 # Helper: read API key
@@ -34,6 +45,11 @@ def load_prompt(filepath):
 
 # Main generation logic (cleanly encapsulated)
 def generate_html():
+
+    # Check internet first
+    if not has_internet():
+        print("No internet connection. Cannot generate HTML.")
+        return
 
     # Load API key
     key = get_api_key_from_file(API_KEY_FILE)

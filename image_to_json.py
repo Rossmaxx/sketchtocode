@@ -170,8 +170,8 @@ def recognize_text_with_trocr(image_path, text_box_list):
     # Faster generation settings (tweakable)
     generated_ids = model.generate(
         pixel_values,
-        max_new_tokens=64,     # you can drop to 32 for more speed
-        num_beams=2            # you can drop to 1 for more speed
+        max_new_tokens=32,
+        num_beams=1
     )
 
     # Batch decode
