@@ -3,6 +3,10 @@
 **SketchToCode** is a python based tool that takes a rough, hand-drawn wireframe image 
 and generates a semantic HTML prototype using Gemini + a custom layout engine.
 
+## Youtube video demo
+
+https://youtu.be/6GNpuVv6qiU?si=HVprRqXh4ESDIL-W
+
 How it works:
 image → image_to_json.py → raw_wireframe.json
       → json_hierarchy.py → hierarchy_wireframe.json
