@@ -12,7 +12,7 @@ image → image_to_json.py → raw_wireframe.json
 NOTE: This is work in progress, so I've hardcoded many paths and functionality.
 
 ## Quick start
-To run SketchToCode, you need to have python 3.8+ installed, and ensure you have added python to PATH 
+To run SketchToCode, you need to have python 3.10+ installed, and ensure you have added python to PATH 
 
 Once you have python installed, run this command (or if you have venv configured, use it's equivalent)
 ```sh 
