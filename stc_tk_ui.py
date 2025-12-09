@@ -7,13 +7,15 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 # Adjust this import to the module where stc_init and stc_run are defined
-# e.g. from main import stc_init, stc_run
 from stc_engine import stc_init, stc_run
+
+# Import the new feedback engine API
+from feedback_engine import apply_feedback
 
 WIN_WIDTH = 600
 WIN_HEIGHT = 400
 
-# Where we expect the generated HTML to appear
+# Where we expect the generated HTML to appear (candidate list)
 HTML_CANDIDATES = [
     "files/index.html",
     "files/output.html",
@@ -52,6 +54,7 @@ class STCGUI(tk.Tk):
         self.show_main_view()
 
         # Initialize engine in background
+        # Note: select file button starts as disabled until init completes
         self.after(100, self._async_init_engine)
 
     # =============================
@@ -80,8 +83,9 @@ class STCGUI(tk.Tk):
         btn_frame = ttk.Frame(self.main_frame)
         btn_frame.pack(fill="x", padx=padding, pady=8)
 
+        # disabled until init completes
         self.btn_select = ttk.Button(
-            btn_frame, text="Select file", command=self.on_select_file
+            btn_frame, text="Select file", command=self.on_select_file, state="disabled"
         )
         self.btn_select.pack(side="left", padx=(0, 8))
 
@@ -145,23 +149,24 @@ class STCGUI(tk.Tk):
         btn_frame.pack(fill="x", padx=padding, pady=(0, 8))
 
         self.btn_apply_feedback = ttk.Button(
-            btn_frame, text="Apply", command=self.on_apply_feedback
+            btn_frame, text="Apply", command=self.on_apply_feedback, state="normal"
         )
         self.btn_apply_feedback.pack(side="left", padx=(0, 8))
 
         self.btn_preview_fb = ttk.Button(
-            btn_frame, text="Preview", command=self.on_preview
+            btn_frame, text="Preview", command=self.on_preview, state="normal"
         )
         self.btn_preview_fb.pack(side="left", padx=(0, 8))
 
         self.btn_download_fb = ttk.Button(
-            btn_frame, text="Download", command=self.on_download
+            btn_frame, text="Download", command=self.on_download, state="normal"
         )
         self.btn_download_fb.pack(side="left", padx=(0, 8))
 
         self.btn_convert_new = ttk.Button(
             btn_frame, text="Convert new image",
-            command=self.on_convert_new_image
+            command=self.on_convert_new_image,
+            state="normal"
         )
         self.btn_convert_new.pack(side="left", padx=(0, 8))
 
@@ -207,13 +212,13 @@ class STCGUI(tk.Tk):
             ok = stc_init(status_callback=cb)
             if ok:
                 self.after(0, lambda: self._set_status("Ready"))
-                # feedback button enabled once engine is ready (HTML still needed)
+                # enable select now that engine is ready
+                self.after(0, lambda: self.btn_select.config(state="normal"))
                 self.after(0, lambda: self.btn_feedback_main.config(state="normal"))
             else:
                 self.after(0, lambda: self._set_status(
                     "Initialization failed (check internet/models)"
                 ))
-                # keep buttons mostly disabled if init fails
                 self.after(0, lambda: self.btn_select.config(state="disabled"))
         t = threading.Thread(target=worker, daemon=True)
         t.start()
@@ -289,9 +294,7 @@ class STCGUI(tk.Tk):
 
     def on_download(self):
         if not self._ensure_html_exists():
-            messagebox.showinfo(
-                "Download", "No generated HTML found. Please run the pipeline first."
-            )
+            messagebox.showinfo("Download", "No generated HTML found. Please run the pipeline first.")
             return
 
         dest = filedialog.asksaveasfilename(
@@ -308,18 +311,15 @@ class STCGUI(tk.Tk):
             messagebox.showerror("Download error", str(e))
 
     # =============================
-    # Feedback engine actions
+    # Feedback engine actions (integrated)
     # =============================
     def on_apply_feedback(self):
         """
-        Apply feedback to the generated HTML.
-        Right now this is a placeholder that you can connect
-        to your real feedback engine (e.g. Gemini-based refinement).
+        Apply feedback to the generated HTML using feedback_engine.apply_feedback.
+        Runs in a background thread; updates status via callback.
         """
         if not self._ensure_html_exists():
-            messagebox.showinfo(
-                "Feedback", "No generated HTML found. Please run the pipeline first."
-            )
+            messagebox.showinfo("Feedback", "No generated HTML found. Please run the pipeline first.")
             return
 
         prompt = self.feedback_text.get("1.0", "end").strip()
@@ -327,14 +327,36 @@ class STCGUI(tk.Tk):
             messagebox.showinfo("Feedback", "Please enter some feedback first.")
             return
 
+        # disable feedback buttons while running
+        self.btn_apply_feedback.config(state="disabled")
+        self.btn_preview_fb.config(state="disabled")
+        self.btn_download_fb.config(state="disabled")
+        self.btn_convert_new.config(state="disabled")
+
         cb = self._make_status_callback()
 
         def worker():
-            cb("Applying feedback to HTML (placeholder)...")
-            # TODO: replace this with your actual feedback engine call,
-            # e.g. run_feedback_engine(self.last_html, prompt, status_callback=cb)
-            # For now, just simulate / mark as done:
-            cb("Feedback applied (placeholder). You can preview/download the HTML again.")
+            try:
+                cb("Applying feedback...")
+                # call the engine; pass html_file and status_callback so GUI shows progress
+                html_path = self.last_html or "files/index.html"
+                status = apply_feedback(
+                    user_prompt_text=prompt,
+                    html_file=html_path,
+                    status_callback=cb
+                )
+                # apply_feedback also calls cb for intermediate updates; show final status too
+                cb(status)
+                # update last_html (same file path used)
+                self.last_html = html_path
+            except Exception as e:
+                cb(f"Feedback failed: {e}")
+            finally:
+                # re-enable feedback buttons on main thread
+                self.after(0, lambda: self.btn_apply_feedback.config(state="normal"))
+                self.after(0, lambda: self.btn_preview_fb.config(state="normal"))
+                self.after(0, lambda: self.btn_download_fb.config(state="normal"))
+                self.after(0, lambda: self.btn_convert_new.config(state="normal"))
 
         t = threading.Thread(target=worker, daemon=True)
         t.start()
