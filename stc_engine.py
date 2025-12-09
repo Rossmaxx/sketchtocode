@@ -7,15 +7,18 @@ from json_hierarchy import process_wireframe_json
 from code_generation_gemini import generate_html, has_internet
 
 def stc_init():
-    print("Initialising STC Engine")
+    status = "Initialising STC Engine"
+    print(status)
     initialize_models()
 
     # Check internet before running the script
     if not has_internet():
-        print("No internet connection. Cannot generate HTML.")
+        status = "No internet connection. Cannot generate HTML."
+        print(status)
         return False
     
-    print("Initialisation complete")
+    status = "Initialisation complete"
+    print(status)
     return True
 
 def stc_run(filename):
