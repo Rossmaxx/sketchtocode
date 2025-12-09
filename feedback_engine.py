@@ -38,12 +38,11 @@ def load_text_file(filepath: str) -> str:
 
 
 # Main feedback logic
-def apply_feedback():
+def apply_feedback(user_prompt_text):
     # Load API key
     key = get_api_key_from_file(API_KEY_FILE)
     if not key:
-        # No API key -> can't proceed
-        return
+        return "[ERROR] No API Key in gemini_key.txt"
 
     os.environ['GEMINI_API_KEY'] = key
 
@@ -51,24 +50,15 @@ def apply_feedback():
     try:
         client = genai.Client()
     except Exception as e:
-        print("[ERROR] Failed to initialize Gemini client:", e)
-        return
+        return f"[ERROR] Failed to initialize Gemini client: {e}"
 
     # Load input HTML (read contents of the html file)
     html_content = load_text_file(HTML_FILE)
     if not html_content.strip():
-        print("[WARN] HTML file is empty or missing. Nothing to apply feedback on.")
-        return
+        return "[WARN] HTML file is empty or missing. Nothing to apply feedback on."
 
     # Load base system/default feedback prompt
     prompt = load_text_file(PROMPT_FILE).strip()
-    if not prompt:
-        print("[ERROR] Prompt is empty. Check feedback_prompt.txt.")
-        return
-
-    # Load user-specific prompt (for testing or later for actual user input)
-    user_prompt_text = load_text_file(USER_PROMPT).strip()
-    # It's okay if this is empty; we just won't add an extra section
 
     # Build full prompt
     sections = [prompt]
@@ -93,19 +83,16 @@ def apply_feedback():
             contents=full_prompt,
         )
     except Exception as e:
-        print("[ERROR] Error during API call:", e)
-        return
+        return f"[ERROR] Error during API call: {e}"
 
     # Extract generated HTML
     try:
         generated_html = response.text
     except Exception as e:
-        print("[ERROR] Failed to extract text from response:", e)
-        return
+        return f"[ERROR] Failed to extract text from response:{e}"
 
     if not generated_html.strip():
-        print("[WARN] Model returned empty output. HTML file not modified.")
-        return
+        return "[WARN] Model returned empty output. HTML file not modified."
 
     # Save output HTML
     try:
@@ -119,5 +106,6 @@ def apply_feedback():
 
 # Script entry point
 if __name__ == "__main__":
-    status = apply_feedback()
+    user_prompt = load_text_file(USER_PROMPT).strip()
+    status = apply_feedback(user_prompt)
     print(status)
