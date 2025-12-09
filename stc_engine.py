@@ -19,9 +19,14 @@ def stc_init():
     return True
 
 def stc_run(filename):
-    detect_boxes_and_text(filename)
-    process_wireframe_json()
-    generate_html()
+    status = "Processing... Please Wait"
+    print(status)
+    status = detect_boxes_and_text(filename)
+    print(status)
+    status = process_wireframe_json()
+    print(status)
+    status = generate_html()
+    print(status)
 
 if __name__ == "__main__":
     # command line argument parsing for file name

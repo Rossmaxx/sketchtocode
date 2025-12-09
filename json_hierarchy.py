@@ -302,9 +302,10 @@ def process_wireframe_json():
     with save_to.open("w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
 
-    print("Hierarchy generated successfully!")
+    return "Hierarchy generated successfully!"
 
 
 # Script entry point
 if __name__ == "__main__":
-    process_wireframe_json()
+    status = process_wireframe_json()
+    print(status)

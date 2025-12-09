@@ -99,11 +99,13 @@ def generate_html():
     try:
         with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
             f.write(generated_html)
-        print(f"HTML saved to {OUTPUT_HTML}")
     except Exception as e:
         print("Failed to write HTML:", e)
+
+    return f"HTML saved to {OUTPUT_HTML}"
 
 
 # Script entry point
 if __name__ == "__main__":
-    generate_html()
+    status = generate_html()
+    print(status)

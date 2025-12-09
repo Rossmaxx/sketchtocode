@@ -111,11 +111,13 @@ def apply_feedback():
     try:
         with open(HTML_FILE, "w", encoding="utf-8") as f:
             f.write(generated_html)
-        print(f"[OK] HTML saved to {HTML_FILE}")
     except Exception as e:
         print("[ERROR] Failed to write HTML:", e)
+
+    return f"HTML saved to {HTML_FILE}"
 
 
 # Script entry point
 if __name__ == "__main__":
-    apply_feedback()
+    status = apply_feedback()
+    print(status)

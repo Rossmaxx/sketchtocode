@@ -280,9 +280,10 @@ def detect_boxes_and_text(image_path):
     except Exception as e:
         print(f"Error writing JSON: {e}")
 
-    print("\n--- Detection Completed ---")
+    return "--- Detection Completed ---"
 
 # Script entry point
 if __name__ == "__main__":
     initialize_models()
-    detect_boxes_and_text("files/sample.jpg")
+    status = detect_boxes_and_text("files/sample.jpg")
+    print(status)
