@@ -1,4 +1,4 @@
-# stc_gui.py
+# stc tkinker gui
 import os
 import threading
 import shutil
@@ -6,10 +6,9 @@ import webbrowser
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
-# Adjust this import to the module where stc_init and stc_run are defined
 from stc_engine import stc_init, stc_run
 
-# Import the new feedback engine API
+# Import the feedback engine API
 from feedback_engine import apply_feedback
 
 WIN_WIDTH = 600
@@ -57,9 +56,7 @@ class STCGUI(tk.Tk):
         # Note: select file button starts as disabled until init completes
         self.after(100, self._async_init_engine)
 
-    # =============================
     # View building
-    # =============================
     def _build_main_view(self):
         """Main screen: description + 4 buttons in a row + selected file label."""
         self.main_frame = ttk.Frame(self.content_frame)
@@ -68,7 +65,7 @@ class STCGUI(tk.Tk):
 
         # Description at top
         desc = (
-            "SketchToCode — select a hand-drawn UI sketch and convert it to HTML.\n"
+            "SketchToCode - select a hand-drawn UI sketch and convert it to HTML.\n"
             "Steps: Detect UI boxes → build hierarchy → generate HTML."
         )
         self.main_desc_label = ttk.Label(
@@ -195,9 +192,7 @@ class STCGUI(tk.Tk):
         self.show_main_view()
         self._set_status("Ready to convert a new image")
 
-    # =============================
     # Status + callbacks
-    # =============================
     def _set_status(self, msg: str):
         self.status_var.set(msg)
 
@@ -223,9 +218,7 @@ class STCGUI(tk.Tk):
         t = threading.Thread(target=worker, daemon=True)
         t.start()
 
-    # =============================
     # Pipeline / main buttons
-    # =============================
     def on_select_file(self):
         path = filedialog.askopenfilename(
             title="Select wireframe image",
@@ -273,10 +266,7 @@ class STCGUI(tk.Tk):
         t = threading.Thread(target=worker, daemon=True)
         t.start()
 
-    # =============================
-    # Shared preview / download
-    # (used by both views)
-    # =============================
+    # Shared preview / download (used by both views)
     def _ensure_html_exists(self) -> bool:
         html = self.last_html or self._locate_generated_html()
         if html and os.path.exists(html):
@@ -310,9 +300,7 @@ class STCGUI(tk.Tk):
         except Exception as e:
             messagebox.showerror("Download error", str(e))
 
-    # =============================
     # Feedback engine actions (integrated)
-    # =============================
     def on_apply_feedback(self):
         """
         Apply feedback to the generated HTML using feedback_engine.apply_feedback.
@@ -361,9 +349,7 @@ class STCGUI(tk.Tk):
         t = threading.Thread(target=worker, daemon=True)
         t.start()
 
-    # =============================
     # Helpers
-    # =============================
     def _locate_generated_html(self):
         for p in HTML_CANDIDATES:
             if os.path.exists(p):
