@@ -7,9 +7,11 @@ from image_to_json import initialize_models, detect_boxes_and_text
 from json_hierarchy import process_wireframe_json
 from code_generation_gemini import generate_html, has_internet
 
+
+# Callback logic
 StatusCallback = Optional[Callable[[str], None]]
 
-def _default_status(msg: str, cb: StatusCallback):
+def _status(msg: str, cb: StatusCallback):
     if cb:
         try:
             cb(msg)
@@ -20,35 +22,35 @@ def _default_status(msg: str, cb: StatusCallback):
         print(msg)
 
 def stc_init(status_callback: StatusCallback = None) -> bool:
-    _default_status("Initialising STC Engine", status_callback)
+    _status("Initialising STC Engine", status_callback)
     initialize_models()
 
     # Check internet before running the script
     if not has_internet():
-        _default_status("No internet connection. Cannot generate HTML.", status_callback)
+        _status("No internet connection. Cannot generate HTML.", status_callback)
         return False
 
-    _default_status("Initialisation complete", status_callback)
+    _status("Initialisation complete", status_callback)
     return True
 
 def stc_run(filename: str, status_callback: StatusCallback = None) -> bool:
     try:
-        _default_status("Processing... Please Wait", status_callback)
+        _status("Processing... Please Wait", status_callback)
 
-        _default_status("Step 1: Detecting UI boxes and text...", status_callback)
+        _status("Step 1: Detecting UI boxes and text...", status_callback)
         detect_boxes_and_text(filename)   # keep as-is
 
-        _default_status("Step 2: Building JSON hierarchy...", status_callback)
+        _status("Step 2: Building JSON hierarchy...", status_callback)
         process_wireframe_json()
 
-        _default_status("Step 3: Generating HTML...", status_callback)
+        _status("Step 3: Generating HTML...", status_callback)
         generate_html()
 
-        _default_status("Done.", status_callback)
+        _status("Done.", status_callback)
         return True
 
     except Exception as e:
-        _default_status(f"Error: {e}", status_callback)
+        _status(f"Error: {e}", status_callback)
         return False
 
 
