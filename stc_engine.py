@@ -11,6 +11,8 @@ from code_generation_gemini import generate_html, has_internet
 # Callback logic
 StatusCallback = Optional[Callable[[str], None]]
 
+# Used to switch between callback function (eg: tkinker status display)
+# and print for status message
 def _status(msg: str, cb: StatusCallback):
     if cb:
         try:
@@ -64,7 +66,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    if not stc_init():            # CLI: default callback is print
+    if not stc_init(): # CLI: default callback is print
         raise SystemExit(1)
 
     if args.image == "files/sample.jpg":
