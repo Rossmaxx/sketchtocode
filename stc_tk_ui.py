@@ -6,7 +6,7 @@ import webbrowser
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
-from stc_engine import stc_init, stc_run
+from .stc_engine import stc_init, stc_run
 
 # Import the feedback engine API
 from feedback_engine import apply_feedback
