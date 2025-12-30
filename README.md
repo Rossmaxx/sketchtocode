@@ -1,5 +1,7 @@
 # SketchToCode - An image to HTML generator
 
+# WIP conversion to turn this script into a package
+
 **SketchToCode** is a python based tool that takes a rough, hand-drawn wireframe image 
 and generates a semantic HTML prototype using Gemini + a custom layout engine.
 
