@@ -7,6 +7,9 @@ from .image_to_json import initialize_models, detect_boxes_and_text
 from .json_hierarchy import process_wireframe_json
 from .code_generation_gemini import generate_html, has_internet
 
+from pathlib import Path
+from .paths import FILES_DIR
+
 
 # Callback logic
 StatusCallback = Optional[Callable[[str], None]]
@@ -40,7 +43,9 @@ def stc_run(filename: str, status_callback: StatusCallback = None) -> bool:
         _status("Processing... Please Wait", status_callback)
 
         _status("Step 1: Detecting UI boxes and text...", status_callback)
-        detect_boxes_and_text(filename)   # keep as-is
+        # ensure we pass a string path to OpenCV-based code
+        img_path = str(filename) if isinstance(filename, (Path,)) else filename
+        detect_boxes_and_text(img_path)
 
         _status("Step 2: Building JSON hierarchy...", status_callback)
         process_wireframe_json()
@@ -61,15 +66,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "image",
         nargs="?",
-        default="files/sample.jpg",
-        help="Path to wireframe image (default: files/sample.jpg)"
+        default=str(FILES_DIR / "sample.jpg"),
+        help=f"Path to wireframe image (default: {str(FILES_DIR / 'sample.jpg')})"
     )
     args = parser.parse_args()
 
     if not stc_init(): # CLI: default callback is print
         raise SystemExit(1)
 
-    if args.image == "files/sample.jpg":
-        print("Using test image at files/sample.jpg because image path is not passed by the user")
+    if args.image == str(FILES_DIR / "sample.jpg"):
+        print(f"Using test image at {str(FILES_DIR / 'sample.jpg')} because image path is not passed by the user")
 
-    stc_run(args.image)
+    stc_run(str(args.image))

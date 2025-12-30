@@ -5,6 +5,8 @@ import json
 from pathlib import Path
 from typing import Dict, Any, List
 
+from .paths import FILES_DIR
+
 
 def rect_contains(outer: Dict[str, float], inner: Dict[str, float], tol: float = 0.0) -> bool:
     """
@@ -277,7 +279,7 @@ def process_wireframe_json():
       - simplify to an LLM-facing layout tree
       - (optional) write result to another json file
     """
-    input_filepath = Path("files/raw_wireframe.json")
+    input_filepath = FILES_DIR / "raw_wireframe.json"
     with input_filepath.open("r", encoding="utf-8") as f:
         data = json.load(f)
 
@@ -298,7 +300,7 @@ def process_wireframe_json():
     }
 
     # Write the json file to disk for generating the code
-    save_to = Path("files/hierarchy_wireframe.json")
+    save_to = FILES_DIR / "hierarchy_wireframe.json"
     with save_to.open("w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
 

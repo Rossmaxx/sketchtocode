@@ -9,8 +9,10 @@ import socket
 API_KEY_FILE = "gemini_key.txt"
 PROMPT_FILE = "prompt.txt"
 
-INPUT_JSON = "files/hierarchy_wireframe.json"
-OUTPUT_HTML = "files/index.html"
+from .paths import FILES_DIR
+
+INPUT_JSON = FILES_DIR / "hierarchy_wireframe.json"
+OUTPUT_HTML = FILES_DIR / "index.html"
 
 
 # Helper: check internet access
@@ -67,7 +69,7 @@ def generate_html():
 
     # Load layout JSON
     try:
-        with open(INPUT_JSON, "r", encoding="utf-8") as f:
+        with open(str(INPUT_JSON), "r", encoding="utf-8") as f:
             layout_json = json.load(f)
     except Exception as e:
         print("Failed to read layout JSON:", e)
@@ -97,12 +99,12 @@ def generate_html():
 
     # Save output HTML
     try:
-        with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
+        with open(str(OUTPUT_HTML), "w", encoding="utf-8") as f:
             f.write(generated_html)
     except Exception as e:
         print("Failed to write HTML:", e)
 
-    return f"HTML saved to {OUTPUT_HTML}"
+    return f"HTML saved to {str(OUTPUT_HTML)}"
 
 
 # Script entry point

@@ -21,7 +21,9 @@ import easyocr
 from PIL import Image
 from transformers import TrOCRProcessor, VisionEncoderDecoderModel
 import json
+import os
 
+from .paths import FILES_DIR
 
 # Global variables for the TrOCR model to avoid reloading for every call
 trocr_processor = None
@@ -197,6 +199,8 @@ def recognize_text_with_trocr(image_path, text_box_list):
 
 def detect_boxes_and_text(image_path):
     # Main function to detect both boxes and text and save the information as JSON.
+    # Ensure image_path is a string for OpenCV
+    image_path = str(image_path)
     image = cv2.imread(image_path)
     if image is None:
         print("Error: Could not read image.")
@@ -273,10 +277,10 @@ def detect_boxes_and_text(image_path):
     }
 
     try:
-        output_path = "files/raw_wireframe.json"
+        output_path = FILES_DIR / "raw_wireframe.json"
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-        print(f"\nDetection results saved to {os.path.abspath(output_path)}")
+        print(f"\nDetection results saved to {os.path.abspath(str(output_path))}")
     except Exception as e:
         print(f"Error writing JSON: {e}")
 
@@ -285,5 +289,5 @@ def detect_boxes_and_text(image_path):
 # Script entry point
 if __name__ == "__main__":
     initialize_models()
-    status = detect_boxes_and_text("files/sample.jpg")
+    status = detect_boxes_and_text(str(FILES_DIR / "sample.jpg"))
     print(status)

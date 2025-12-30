@@ -12,11 +12,14 @@ from typing import Callable, Optional
 
 from google import genai
 
+from .paths import FILES_DIR
+
 # Configuration (same defaults as your old script)
 API_KEY_FILE = "gemini_key.txt"
 PROMPT_FILE = "feedback_prompt.txt"
 USER_PROMPT = "user_prompt.txt"   # CLI fallback prompt file
-DEFAULT_HTML_FILE = "files/index.html"
+
+DEFAULT_HTML_FILE = str(FILES_DIR / "index.html")
 DEFAULT_MODEL = "gemini-2.5-flash"
 
 StatusCallback = Optional[Callable[[str], None]]

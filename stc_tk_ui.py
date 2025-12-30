@@ -7,6 +7,7 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
 from .stc_engine import stc_init, stc_run
+from .paths import FILES_DIR
 
 # Import the feedback engine API
 from feedback_engine import apply_feedback
@@ -16,11 +17,10 @@ WIN_HEIGHT = 400
 
 # Where we expect the generated HTML to appear (candidate list)
 HTML_CANDIDATES = [
-    "files/index.html",
-    "files/output.html",
-    "files/result.html",
-    "output/index.html",
-    "files/generated.html",
+    str(FILES_DIR / "index.html"),
+    str(FILES_DIR / "output.html"),
+    str(FILES_DIR / "result.html"),
+    str(FILES_DIR / "generated.html"),
 ]
 
 
@@ -327,7 +327,7 @@ class STCGUI(tk.Tk):
             try:
                 cb("Applying feedback...")
                 # call the engine; pass html_file and status_callback so GUI shows progress
-                html_path = self.last_html or "files/index.html"
+                html_path = str(self.last_html) if self.last_html else str(FILES_DIR / "index.html")
                 status = apply_feedback(
                     user_prompt_text=prompt,
                     html_file=html_path,
@@ -336,7 +336,7 @@ class STCGUI(tk.Tk):
                 # apply_feedback also calls cb for intermediate updates; show final status too
                 cb(status)
                 # update last_html (same file path used)
-                self.last_html = html_path
+                self.last_html = str(html_path)
             except Exception as e:
                 cb(f"Feedback failed: {e}")
             finally:
@@ -351,14 +351,14 @@ class STCGUI(tk.Tk):
 
     # Helpers
     def _locate_generated_html(self):
-        for p in HTML_CANDIDATES:
-            if os.path.exists(p):
-                return p
-        folder = "files"
-        if os.path.isdir(folder):
-            for f in os.listdir(folder):
-                if f.lower().endswith(".html"):
-                    return os.path.join(folder, f)
+            for p in HTML_CANDIDATES:
+                if os.path.exists(p):
+                    return str(p)
+            folder = str(FILES_DIR)
+            if os.path.isdir(folder):
+                for f in os.listdir(folder):
+                    if f.lower().endswith(".html"):
+                        return os.path.join(folder, f)
         return None
 
 
