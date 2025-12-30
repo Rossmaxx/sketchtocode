@@ -3,9 +3,9 @@
 import argparse
 from typing import Callable, Optional
 
-from image_to_json import initialize_models, detect_boxes_and_text
-from json_hierarchy import process_wireframe_json
-from code_generation_gemini import generate_html, has_internet
+from .image_to_json import initialize_models, detect_boxes_and_text
+from .json_hierarchy import process_wireframe_json
+from .code_generation_gemini import generate_html, has_internet
 
 
 # Callback logic
