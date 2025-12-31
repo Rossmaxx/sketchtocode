@@ -280,7 +280,6 @@ def detect_boxes_and_text(image_path):
         output_path = FILES_DIR / "raw_wireframe.json"
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
-        print(f"\nDetection results saved to {os.path.abspath(str(output_path))}")
     except Exception as e:
         print(f"Error writing JSON: {e}")
 

@@ -40,8 +40,6 @@ def stc_init(status_callback: StatusCallback = None) -> bool:
 
 def stc_run(filename: str, status_callback: StatusCallback = None) -> bool:
     try:
-        _status("Processing... Please Wait", status_callback)
-
         _status("Step 1: Detecting UI boxes and text...", status_callback)
         # ensure we pass a string path to OpenCV-based code
         img_path = str(filename) if isinstance(filename, (Path,)) else filename
