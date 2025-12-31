@@ -4,12 +4,13 @@ import json
 from google import genai
 import socket
 
+from .paths import FILES_DIR, BASE_DIR
+
 
 # Configuration
-API_KEY_FILE = "gemini_key.txt"
-PROMPT_FILE = "prompt.txt"
-
-from .paths import FILES_DIR
+# TODO: change the hardcode for the gemini key, use another method to pass it in
+API_KEY_FILE = BASE_DIR / "gemini_key.txt"
+PROMPT_FILE = BASE_DIR / "prompt.txt"
 
 INPUT_JSON = FILES_DIR / "hierarchy_wireframe.json"
 OUTPUT_HTML = FILES_DIR / "index.html"
@@ -28,7 +29,7 @@ def has_internet(timeout=3):
 # Helper: read API key
 def get_api_key_from_file(filepath):
     try:
-        with open(filepath, 'r') as f:
+        with open(filepath, 'r', encoding="utf-8") as f:
             return f.readline().strip()
     except FileNotFoundError:
         print(f"API key file not found at: {filepath}")

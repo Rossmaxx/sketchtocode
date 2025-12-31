@@ -12,12 +12,13 @@ from typing import Callable, Optional
 
 from google import genai
 
-from .paths import FILES_DIR
+from .paths import FILES_DIR, BASE_DIR
 
 # Configuration (same defaults as your old script)
-API_KEY_FILE = "gemini_key.txt"
-PROMPT_FILE = "feedback_prompt.txt"
-USER_PROMPT = "user_prompt.txt"   # CLI fallback prompt file
+# TODO: change the hardcode for the gemini key, use another method to pass it in
+API_KEY_FILE = BASE_DIR / "gemini_key.txt"
+PROMPT_FILE = BASE_DIR / "feedback_prompt.txt"
+USER_PROMPT = BASE_DIR / "user_prompt.txt"   # CLI fallback prompt file
 
 DEFAULT_HTML_FILE = str(FILES_DIR / "index.html")
 DEFAULT_MODEL = "gemini-2.5-flash"
