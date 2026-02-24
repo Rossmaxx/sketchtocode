@@ -37,8 +37,7 @@ IMPORTANT PRINCIPLES:
    - Use flexbox or CSS grid with clean fractions (e.g. 1fr / 3fr), do NOT compute weird percentages directly from the JSON.
 
 5. Text:
-   - Use exactly the text strings from the JSON, but you may fix obvious OCR typos (like "plome." -> "Home", "mebsites" -> "websites") 
-     if the intent is clear from context.
+   - Use exactly the text strings from the JSON, but you may fix obvious OCR typos if the intent is clear from context.
    - Group words into sentences instead of showing each token separately.
 
 6. Output:

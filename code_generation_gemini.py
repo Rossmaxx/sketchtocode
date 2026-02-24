@@ -2,45 +2,9 @@
 import os
 import json
 from google import genai
-import socket
 
-
-# Configuration
-API_KEY_FILE = "gemini_key.txt"
-PROMPT_FILE = "prompt.txt"
-
-INPUT_JSON = "files/hierarchy_wireframe.json"
-OUTPUT_HTML = "files/index.html"
-
-
-# Helper: check internet access
-def has_internet(timeout=3):
-    try:
-        socket.setdefaulttimeout(timeout)
-        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect(("8.8.8.8", 53))
-        return True
-    except Exception:
-        return False
-
-
-# Helper: read API key
-def get_api_key_from_file(filepath):
-    try:
-        with open(filepath, 'r') as f:
-            return f.readline().strip()
-    except FileNotFoundError:
-        print(f"API key file not found at: {filepath}")
-        return None
-
-
-# Helper: read external prompt
-def load_prompt(filepath):
-    try:
-        with open(filepath, "r", encoding="utf-8") as f:
-            return f.read()
-    except Exception as e:
-        print(f"Failed to read prompt file: {e}")
-        return ""
+from .gemini_utils import get_api_key_from_file, has_internet, load_prompt
+from .paths import API_KEY_FILE, PROMPT_FILE, HIERARCHY_WIREFRAME_JSON, OUTPUT_HTML, DEFAULT_MODEL
 
 
 # Main generation logic (cleanly encapsulated)
@@ -67,14 +31,14 @@ def generate_html():
 
     # Load layout JSON
     try:
-        with open(INPUT_JSON, "r", encoding="utf-8") as f:
+        with open(str(HIERARCHY_WIREFRAME_JSON), "r", encoding="utf-8") as f:
             layout_json = json.load(f)
     except Exception as e:
         print("Failed to read layout JSON:", e)
         return
 
     # Load prompt
-    prompt = load_prompt(PROMPT_FILE)
+    prompt = load_prompt(str(PROMPT_FILE))
     if not prompt.strip():
         print("Prompt is empty. Check prompt.txt.")
         return
@@ -86,7 +50,7 @@ def generate_html():
     # Send request to Gemini
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=DEFAULT_MODEL,
             contents=contents,
         )
     except Exception as e:
@@ -97,12 +61,12 @@ def generate_html():
 
     # Save output HTML
     try:
-        with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
+        with open(str(OUTPUT_HTML), "w", encoding="utf-8") as f:
             f.write(generated_html)
     except Exception as e:
         print("Failed to write HTML:", e)
 
-    return f"HTML saved to {OUTPUT_HTML}"
+    return f"HTML saved to {str(OUTPUT_HTML)}"
 
 
 # Script entry point

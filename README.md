@@ -1,5 +1,8 @@
 # SketchToCode - An image to HTML generator
 
+# Currently, the script exists as a package, there are a lot of points I have to address
+TODO: Fix the command line utility, and make it work with the new package structure
+
 **SketchToCode** is a python based tool that takes a rough, hand-drawn wireframe image 
 and generates a semantic HTML prototype using Gemini + a custom layout engine.
 
@@ -8,7 +11,7 @@ image → image_to_json.py → raw_wireframe.json
       → json_hierarchy.py → hierarchy_wireframe.json
       → code_generation_gemini.py → index.html
 
-## Youtube video demo
+## Youtube video demo (outdated, will update soon)
 
 https://youtu.be/6GNpuVv6qiU?si=HVprRqXh4ESDIL-W
 
@@ -28,14 +31,13 @@ To get Gemini API key - sign up at https://aistudio.google.com/ and set up your 
 Once you got your API key, Copy paste it to `gemini_key.txt` 
 (only the key, don't add anything else inside the file)
 
-Once you are done, run
-```sh
-python stc_tk_ui.py
-```
+After turning this into a package, the command line utility is currently broken
 
+<details>
+<summary> outdated instructions, doesn't work anymore, will fix working and update this section soon </summary>
 ## Using the command line utility
 
-I've also created a command line version to use this tool, but it's very hacky as i've created it during the initial stages.
+I've created a command line utility to use this tool, but it's broken after converting this into a package.
 
 Create a folder `files/`.
 
@@ -57,3 +59,4 @@ and run
 ```sh
 python feedback_engine.py
 ```
+</details>
