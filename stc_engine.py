@@ -11,36 +11,43 @@ from pathlib import Path
 from .paths import FILES_DIR
 
 
-def stc_init() -> bool:
-    print("Initialising STC Engine")
+def report_status(message: str, status_callback: Optional[Callable[[str], None]] = None):
+    if status_callback:
+        status_callback(message)
+    else:
+        print(message)
+
+
+def stc_init(status_callback: Optional[Callable[[str], None]] = None) -> bool:
+    report_status("Initialising STC Engine", status_callback)
     initialize_models()
 
     # Check internet before running the script
     if not has_internet():
-        print("No internet connection. Cannot generate HTML.")
+        report_status("No internet connection. Cannot generate HTML.", status_callback)
         return False
 
-    print("Initialisation complete")
+    report_status("Initialisation complete", status_callback)
     return True
 
-def stc_run(filename: str) -> bool:
+def stc_run(filename: str, status_callback: Optional[Callable[[str], None]] = None) -> bool:
     try:
-        print("Step 1: Detecting UI boxes and text...")
+        report_status("Step 1: Detecting UI boxes and text...", status_callback)
         # ensure we pass a string path to OpenCV-based code
         img_path = str(filename) if isinstance(filename, (Path,)) else filename
         detect_boxes_and_text(img_path)
 
-        print("Step 2: Building JSON hierarchy...")
+        report_status("Step 2: Building JSON hierarchy...", status_callback)
         process_wireframe_json()
 
-        print("Step 3: Generating HTML...")
+        report_status("Step 3: Generating HTML...", status_callback)
         generate_html()
 
-        print("Done.")
+        report_status("Done.", status_callback)
         return True
 
     except Exception as e:
-        print(f"Error: {e}")
+        report_status(f"Error: {e}", status_callback)
         return False
 
 
