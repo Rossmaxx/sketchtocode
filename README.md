@@ -1,62 +1,103 @@
-# SketchToCode - An image to HTML generator
+# SketchToCode
 
-# Currently, the script exists as a package, there are a lot of points I have to address
-TODO: Fix the command line utility, and make it work with the new package structure
+SketchToCode is a Python tool that converts rough wireframe images into semantic HTML prototypes.
+It extracts layout elements from a sketch, builds a structured JSON layout, and generates HTML using Google Gemini.
 
-**SketchToCode** is a python based tool that takes a rough, hand-drawn wireframe image 
-and generates a semantic HTML prototype using Gemini + a custom layout engine.
+## Features
 
-How it works:
-image → image_to_json.py → raw_wireframe.json
-      → json_hierarchy.py → hierarchy_wireframe.json
-      → code_generation_gemini.py → index.html
+- Detects UI boxes and text from wireframe images
+- Builds a hierarchical wireframe JSON representation
+- Generates HTML prototypes via Gemini
+- Writes output files to the `files/` folder
 
-## Youtube video demo (outdated, will update soon)
+## Project structure
 
-https://youtu.be/6GNpuVv6qiU?si=HVprRqXh4ESDIL-W
+- `stc_engine.py` — main pipeline entrypoint
+- `image_to_json.py` — detects layout boxes and text from the image
+- `json_hierarchy.py` — converts raw detections into hierarchical JSON
+- `code_generation_gemini.py` — sends the layout to Gemini and saves generated HTML
+- `gemini_utils.py` — API key and internet connectivity helpers
+- `paths.py` — project path constants and output file locations
+- `prompt.txt` — Gemini prompt template
+- `files/` — generated JSON and HTML output
 
-## Setup
-To run SketchToCode, you need to have python 3.10+ installed, and ensure you have added python to PATH 
+## Requirements
 
-Once you have python installed, run this command (or if you have venv configured, use it's equivalent)
-```sh 
+- Python 3.10+
+- Internet access
+- Gemini API key
+
+Install dependencies:
+
+```sh
 pip install -r requirements.txt
 ```
 
-After this is done, You need a Gemini API key to run the code generation module 
-(If you want any other model, open an issue or a PR, I can add support happily)
+## Gemini API key
 
-To get Gemini API key - sign up at https://aistudio.google.com/ and set up your account and use the default project key
+Create a file named `gemini_key.txt` in the project root.
+Put only your Gemini API key in the file, for example:
 
-Once you got your API key, Copy paste it to `gemini_key.txt` 
-(only the key, don't add anything else inside the file)
-
-After turning this into a package, the command line utility is currently broken
-
-<details>
-<summary> outdated instructions, doesn't work anymore, will fix working and update this section soon </summary>
-## Using the command line utility
-
-I've created a command line utility to use this tool, but it's broken after converting this into a package.
-
-Create a folder `files/`.
-
-Once you are done with all this, run
-```sh
-python stc_engine.py filename.jpg (or png if you are using that)
+```text
+YOUR_GEMINI_API_KEY
 ```
 
-or if you can't use command line arguments, place the image as `{project path}/files/sample.jpg`
-and run the code above without the arguments.
+The current default model is `gemini-2.5-flash`.
 
-You will get a rough webpage inside `files/index.html`,
-which may look inconsistent or contain typos depending on the input image.
-You can either edit it manually 
-or use the built in feedback engine to fix the webpage's looks.
+## Usage
 
-To use the feedback engine within the command line, type your suggestions for change in `user_prompt.txt`
-and run
+Run the pipeline from the repository root using module syntax:
+
 ```sh
-python feedback_engine.py
+python -m sketchtocode.stc_engine path/to/wireframe.jpg
 ```
-</details>
+
+**Important:** do not use a path-style module name like `python -m .\sketchtocode.stc_engine`.
+Python accepts only the module name after `-m`, not a filesystem path.
+
+If you omit the image argument, the script attempts to use `files/sample.jpg`.
+
+Example:
+
+```sh
+python -m sketchtocode.stc_engine files/my_wireframe.png
+```
+
+## Output
+
+Generated files are written to:
+
+- `files/raw_wireframe.json`
+- `files/hierarchy_wireframe.json`
+- `files/index.html`
+
+## How it works
+
+1. `image_to_json.py` detects boxes and text from the input image
+2. `json_hierarchy.py` builds a structured wireframe JSON
+3. `code_generation_gemini.py` sends the layout to Gemini and saves HTML
+
+## Notes
+
+- `gemini_key.txt` must exist and contain only the API key.
+- Internet access is required for Gemini API requests.
+- Run the script from the repository root to avoid import issues.
+
+## Troubleshooting
+
+If you see import or package errors, ensure you run:
+
+```sh
+python -m sketchtocode.stc_engine ...
+```
+
+If generation fails, confirm your Gemini key and network connection.
+
+## Contribution
+
+Contributions are welcome for:
+
+- improved CLI support
+- model flexibility
+- more robust layout parsing
+- better HTML output
