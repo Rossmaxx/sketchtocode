@@ -110,7 +110,7 @@ def initialize_models():
 def detect_text_boxes_easyocr(image_path):
     """
     Detect text boxes in a single image using a shared EasyOCR reader.
-    Returns a list of dicts: {'x', 'y', 'w', 'h'}.
+    Returns a list of dicts: {'x', 'y', 'w', 'h', 'text', 'confidence'}.
     """
     reader = get_easyocr_reader()
     if reader is None:
@@ -123,7 +123,7 @@ def detect_text_boxes_easyocr(image_path):
         return []
 
     text_boxes = []
-    for (bbox_points, _, _) in results:
+    for (bbox_points, text, confidence) in results:
         x_coords = [p[0] for p in bbox_points]
         y_coords = [p[1] for p in bbox_points]
         
@@ -132,26 +132,82 @@ def detect_text_boxes_easyocr(image_path):
         w = int(max(x_coords) - x)
         h = int(max(y_coords) - y)
 
-        text_boxes.append({'x': x, 'y': y, 'w': w, 'h': h})
+        text_boxes.append({
+            'x': x, 'y': y, 'w': w, 'h': h,
+            'text': text,
+            'confidence': confidence
+        })
     return text_boxes
 
 
-def recognize_text_with_trocr(image_path, text_box_list):
+def recognize_text_with_trocr(image_path, text_box_list, confidence_threshold=0.80):
+    """
+    Use TrOCR only for boxes with easyocr confidence < threshold.
+    For high-confidence boxes, use easyocr text directly.
+    
+    Args:
+        image_path: Path to the image
+        text_box_list: List of text boxes with text and confidence from easyocr
+        confidence_threshold: Confidence threshold (default 0.80 = 80%)
+    
+    Returns:
+        List of recognized text with bboxes
+    """
     processor, model = get_trocr_model()
     if processor is None or model is None:
-        return []
+        # Fallback: return easyocr results for all boxes
+        return [
+            {
+                'text': box.get('text', ''),
+                'bbox': {'x': box['x'], 'y': box['y'], 'w': box['w'], 'h': box['h']},
+                'source': 'easyocr',
+                'confidence': box.get('confidence', 0)
+            }
+            for box in text_box_list
+        ]
 
     try:
         img = Image.open(image_path).convert("RGB")
     except Exception as e:
         print(f"Error opening image: {e}")
-        return []
+        # Fallback: return easyocr results
+        return [
+            {
+                'text': box.get('text', ''),
+                'bbox': {'x': box['x'], 'y': box['y'], 'w': box['w'], 'h': box['h']},
+                'source': 'easyocr',
+                'confidence': box.get('confidence', 0)
+            }
+            for box in text_box_list
+        ]
 
-    # Collect all valid crops
+    # Separate high-confidence and low-confidence boxes
+    high_conf_boxes = [box for box in text_box_list if box.get('confidence', 0) >= confidence_threshold]
+    low_conf_boxes = [box for box in text_box_list if box.get('confidence', 0) < confidence_threshold]
+
+    recognized_text = []
+
+    # Add high-confidence boxes from easyocr directly
+    for box in high_conf_boxes:
+        recognized_text.append({
+            'text': box.get('text', ''),
+            'bbox': {
+                'x': box['x'], 'y': box['y'],
+                'w': box['w'], 'h': box['h']
+            },
+            'source': 'easyocr',
+            'confidence': box.get('confidence', 0)
+        })
+
+    # Process low-confidence boxes with TrOCR
+    if not low_conf_boxes:
+        return recognized_text
+
+    # Collect crops for low-confidence boxes
     crops = []
     valid_boxes = []
 
-    for box in text_box_list:
+    for box in low_conf_boxes:
         x, y, w, h = box['x'], box['y'], box['w'], box['h']
         if w <= 0 or h <= 0:
             continue
@@ -161,9 +217,20 @@ def recognize_text_with_trocr(image_path, text_box_list):
         valid_boxes.append(box)
 
     if not crops:
-        return []
+        # No valid crops, add low-conf boxes as-is
+        for box in low_conf_boxes:
+            recognized_text.append({
+                'text': box.get('text', ''),
+                'bbox': {
+                    'x': box['x'], 'y': box['y'],
+                    'w': box['w'], 'h': box['h']
+                },
+                'source': 'easyocr',
+                'confidence': box.get('confidence', 0)
+            })
+        return recognized_text
 
-    # Batch encode all crops at once
+    # Batch encode all low-confidence crops
     pixel_values = processor(
         images=crops,
         return_tensors="pt"
@@ -183,15 +250,16 @@ def recognize_text_with_trocr(image_path, text_box_list):
         clean_up_tokenization_spaces=True
     )
 
-    # Return in original format
-    recognized_text = []
+    # Add TrOCR results for low-confidence boxes
     for box, txt in zip(valid_boxes, texts):
         recognized_text.append({
             'text': txt,
             'bbox': {
                 'x': box['x'], 'y': box['y'],
                 'w': box['w'], 'h': box['h']
-            }
+            },
+            'source': 'trocr',
+            'easyocr_confidence': box.get('confidence', 0)
         })
 
     return recognized_text
