@@ -1,6 +1,7 @@
 /__pycache__/
 /files/
 /.venv/
+/.vscode/
 
 /gemini_key.txt
 /user_prompt.txt
